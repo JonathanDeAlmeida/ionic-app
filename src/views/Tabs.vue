@@ -3,6 +3,22 @@
     <ion-tabs>
       <ion-router-outlet></ion-router-outlet>
       <ion-tab-bar slot="bottom">
+
+        <ion-tab-button tab="Lista" href="/list">
+          <ion-icon :icon="triangle" />
+          <ion-label>Lista</ion-label>
+        </ion-tab-button>
+
+        <ion-tab-button tab="Login" href="/login">
+          <ion-icon :icon="triangle" />
+          <ion-label>Login</ion-label>
+        </ion-tab-button>
+
+        <ion-tab-button tab="CadastrarPerfil" href="/cadastrar-perfil">
+          <ion-icon :icon="triangle" />
+          <ion-label>Cadastrar Perfil</ion-label>
+        </ion-tab-button>
+
         <ion-tab-button tab="tab1" href="/tabs/tab1">
           <ion-icon :icon="triangle" />
           <ion-label>Tab 1</ion-label>

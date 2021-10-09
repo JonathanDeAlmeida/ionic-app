@@ -8,6 +8,26 @@ const routes: Array<RouteRecordRaw> = [
     redirect: '/tabs/tab1'
   },
   {
+    path: '/list',
+    component: () => import('@/views/List.vue')
+  },
+  {
+    path: '/login',
+    component: () => import('@/views/Login.vue')
+  },
+  {
+    path: '/cadastrar-perfil',
+    component: () => import('@/views/CadastrarPerfil.vue')
+  },
+  {
+    path: '/cadastrar-imovel',
+    component: () => import('@/views/CadastrarImovel.vue')
+  },
+  {
+    path: '/editar-imovel/:id',
+    component: () => import('@/views/CadastrarImovel.vue')
+  },
+  {
     path: '/tabs/',
     component: Tabs,
     children: [
