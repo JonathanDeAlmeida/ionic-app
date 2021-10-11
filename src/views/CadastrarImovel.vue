@@ -360,7 +360,7 @@ export default {
         }
     },
     created () {
-      this.$router.push('/login')
+      // this.$router.push('/login')
       // this.getPlace(this.$route.params.id)
       // this.$store.dispatch('getSpinner', true)
       // this.getUser()
