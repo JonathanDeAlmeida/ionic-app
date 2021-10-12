@@ -1,5 +1,4 @@
 <template>
-    <section class="mt-container mb-container">
         
         <!-- <b-modal v-model="showModalPlaceDetails" hide-header hide-footer size="lg"> 
             <template v-if="placeDetails">
@@ -154,48 +153,72 @@
                 </template>
             </div>
         </div> -->
-        Hello
 
-        <ion-card>
-          <ion-card-header>
-            <ion-card-subtitle>Card Subtitle</ion-card-subtitle>
-            <ion-card-title>Card Title</ion-card-title>
-          </ion-card-header>
-
-          <ion-card-content>
-            <ion-slides pager="true" :options="slideOpts">
-              <ion-slide>
-                <img src="https://richtergruppe.com.br/wp-content/uploads/312484-como-escolher-o-momento-certo-para-vender-um-terreno-ou-imovel.jpg" 
-                width="100%" height="100%">
-                <!-- <h1>Slide 1</h1> -->
-              </ion-slide>
-              <ion-slide>
-                <img src="https://vivablog.vivareal.com.br/wp-content/uploads/2014/06/imovel-novo.jpg" 
-                width="100%" height="100%">
-              </ion-slide>
-              <ion-slide>
-                <img src="https://cdn.agil.net/cdn/agil/24/property/4097/medium/dd7b6d7ae7e7.webp" 
-                width="100%" height="100%">
-              </ion-slide>
-            </ion-slides>
-          </ion-card-content>
-        </ion-card>
-
-
-
+    <section class="mt-container mb-container">
+      <ion-page>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Cadastro de Imóvel</ion-title>
+            <ion-button class="ion-padding-end" slot="end" router-link="/tabs/tab1">Voltar</ion-button>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content>
+        
+            <ion-card v-for="(place, index) of places" :key="index">
+                <ion-card-header>
+                    <ion-slides pager="true" :options="slideOpts">
+                    <ion-slide style="height: 200px" v-for="(image, index) of place.images" :key="index">
+                        <img :src="domain + image.path" width="100%">
+                    </ion-slide>
+                    </ion-slides>
+                </ion-card-header>
+                <ion-card-content>
+                    <!-- <ion-card-subtitle>Card Subtitle</ion-card-subtitle>
+                    <ion-card-title>Card Title</ion-card-title> -->
+                    <ion-grid>
+                        <ion-row>
+                            <ion-col v-if="place.area" class="text-align-center">
+                                <span class="place-number">{{place.area}}</span>
+                                <span class="place-space">Área (m²)</span>
+                            </ion-col>
+                            <ion-col v-if="place.rooms" class="text-align-center">
+                                <span class="place-number">{{place.rooms}}</span>
+                                <span class="place-space">Quarto</span>
+                            </ion-col>
+                            <ion-col v-if="place.suites" class="text-align-center">
+                                <span class="place-number">{{place.suites}}</span>
+                                <span class="place-space">Suíte</span>
+                            </ion-col>
+                            <ion-col v-if="place.bathrooms" class="text-align-center">
+                                <span class="place-number">{{place.bathrooms}}</span>
+                                <span class="place-space">Banh.</span>
+                            </ion-col>
+                            <ion-col v-if="place.vacancies" class="text-align-center">
+                                <span class="place-number">{{place.vacancies}}</span>
+                                <span class="place-space">Vaga</span>
+                            </ion-col>
+                        </ion-row>
+                    </ion-grid>
+                </ion-card-content>
+            </ion-card>
+        
+        </ion-content>
+      </ion-page>
     </section>
+
 </template>
 
 <script>
 // import Pagination from './Pagination'
 import { getHeader, logout, apiUrl, apiDomain, maskPhone } from './config'
-import { IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/vue';
+import { IonPage, IonHeader, IonTitle, IonContent, IonToolbar, IonButton, IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonCol, IonGrid, IonRow } from '@ionic/vue';
+import axios from 'axios';
 // import spinner from 'vue-strap/src/Spinner'
 
 export default {
     name: 'MeusImoveis',
     components: {
-      IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle
+      IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonPage, IonHeader, IonTitle, IonContent, IonToolbar, IonButton, IonCol, IonGrid, IonRow
         // Pagination,
         // spinner
     },
@@ -264,18 +287,12 @@ export default {
                 user_id: userId,
                 page: page
             }
-            this.$http.get(apiUrl + 'get-places', {params, headers: getHeader()}).then(response => {
-                this.places = response.body.data
-                this.pagination = response.body
+            axios({url: apiUrl + 'get-places', method: 'get', params}).then(response => {
+                this.places = response.data.data
+                // this.pagination = response.body
                 window.scrollTo(0, 0)
-                this.load = true
-                this.$store.dispatch('getSpinner', false)
-            }, error => {
-                if (error.status === 401) {
-                    this.$store.dispatch('getUser', null)
-                    logout()
-                }
-                this.load = true
+                // this.load = true
+                // this.$store.dispatch('getSpinner', false)
             })
         },
         getUser () {
@@ -299,6 +316,7 @@ export default {
     created () {
         // this.$store.dispatch('getSpinner', true)
         // this.getUser()
+        this.navigate()
     }
 }
 </script>
