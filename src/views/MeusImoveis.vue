@@ -1,5 +1,4 @@
 <template>
-        
         <!-- <b-modal v-model="showModalPlaceDetails" hide-header hide-footer size="lg"> 
             <template v-if="placeDetails">
                 <div class="col-md-12 modal-border">
@@ -153,28 +152,64 @@
                 </template>
             </div>
         </div> -->
-
+        
     <section class="mt-container mb-container">
       <ion-page>
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Cadastro de Imóvel</ion-title>
-            <ion-button class="ion-padding-end" slot="end" router-link="/tabs/tab1">Voltar</ion-button>
-          </ion-toolbar>
-        </ion-header>
         <ion-content>
-        
+        <!-- <Menu/> -->
             <ion-card v-for="(place, index) of places" :key="index">
                 <ion-card-header>
-                    <ion-slides pager="true" :options="slideOpts">
-                    <ion-slide style="height: 200px" v-for="(image, index) of place.images" :key="index">
-                        <img :src="domain + image.path" width="100%">
-                    </ion-slide>
-                    </ion-slides>
+                    <template v-if="place.images.length > 0">
+                        <ion-slides pager="true" :options="slideOpts">
+                            <ion-slide style="height: 200px" v-for="(image, index) of place.images" :key="index">
+                                <img :src="domain + image.path" width="100%">
+                            </ion-slide>
+                        </ion-slides>
+                    </template>
+                    <template v-else>
+                        <div>
+                            <div class="text-align-center no-image">
+                                <p> Sem Imagem</p>
+                            </div>
+                        </div>
+                    </template>
                 </ion-card-header>
                 <ion-card-content>
-                    <!-- <ion-card-subtitle>Card Subtitle</ion-card-subtitle>
-                    <ion-card-title>Card Title</ion-card-title> -->
+
+                    <div class="text-align-center">
+                        <template v-if="place.intent === 'rent'">
+                            <p class="place-rent-value">R$ {{ formatValue(place.rent_value) }} 
+                            <span class="fs-15">/ mês</span>
+                            </p>
+                        </template>
+                        <template v-else>
+                            <p class="place-rent-value">R$ {{ formatValue(place.sale_value) }} </p>
+                        </template>
+                        <br>
+                        
+                        <div style="padding-left: 0">
+                            <div class="btn-place-actions">
+                                <button @click.prevent="openModalPlaceDelete(place.place_id)" class="btn-general blue-light mr-2">Excluir</button>
+                                <button class="btn-general blue" @click.prevent="goTo('/editar-imovel/' + place.place_id)">
+                                    Editar
+                                </button>
+                            </div>
+                        </div>
+                    
+                    <p v-if="place.condominium_value > 0" class="d-inline place-secondary-value">Condomínio R$ {{ formatValue(place.condominium_value) }}</p> 
+
+                    <span v-if="place.condominium_value > 0 && place.iptu > 0"> - </span> 
+
+                    <p v-if="place.iptu > 0" class="d-inline place-secondary-value">IPTU R$ {{ formatValue(place.iptu) }}</p>
+                                            
+                    <template v-if="place.description">
+                        <p style="margin-top: 15px" class="place-description-search" v-html="limitText(place.description, 42)"></p>...
+                    </template>
+                                            
+                    <p v-html="textAddress(place, 50)" class="place-address-responsible" :class="place.description ? '' : 'mt-5'"></p>
+                    
+                    </div>
+
                     <ion-grid>
                         <ion-row>
                             <ion-col v-if="place.area" class="text-align-center">
@@ -199,6 +234,28 @@
                             </ion-col>
                         </ion-row>
                     </ion-grid>
+
+                    <div class="text-align-center">
+                        <div class="width-place-button">
+                            <div v-if="place.active">
+                                <button class="btn-general main" @click.prevent="openModalPlaceDetails(place)">
+                                    Ver Mais
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    
+                    <div class="col-md-12 mt-2" style="padding: 0">
+                        <div class="float-left">
+                            <span v-if="place.active" style="color: white; cursor: pointer" class="badge bg-success">Anúncio Ativo</span>
+                            <span v-else style="color: white; cursor: pointer" class="badge bg-danger" title="Para o anúncio estar ativo, deve ter no mínimo 5 fotos">
+                                Anúncio Inativo
+                            </span>
+                        </div>
+                    </div>
+                    
+
                 </ion-card-content>
             </ion-card>
         
@@ -211,14 +268,16 @@
 <script>
 // import Pagination from './Pagination'
 import { getHeader, logout, apiUrl, apiDomain, maskPhone } from './config'
-import { IonPage, IonHeader, IonTitle, IonContent, IonToolbar, IonButton, IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonCol, IonGrid, IonRow } from '@ionic/vue';
+import { modalController, IonPage, IonContent, IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonCol, IonGrid, IonRow } from '@ionic/vue';
 import axios from 'axios';
+import ModalPlaceDetails from './ModalPlaceDetails.vue';
+// import Menu from './Menu.vue'
 // import spinner from 'vue-strap/src/Spinner'
 
 export default {
     name: 'MeusImoveis',
     components: {
-      IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonPage, IonHeader, IonTitle, IonContent, IonToolbar, IonButton, IonCol, IonGrid, IonRow
+      /* Menu , */IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonPage, IonContent, IonCol, IonGrid, IonRow
         // Pagination,
         // spinner
     },
@@ -235,6 +294,15 @@ export default {
         load: false
     }),
     methods: {
+        async openModalPlaceDetails (placeDetails) {
+            const modal = await modalController.create({
+                component: ModalPlaceDetails,
+                componentProps: {
+                    placeDetails: placeDetails
+                }
+            })
+            modal.present()
+        },
         openModalPlaceDelete (placeId) {
             this.placeDeleteId = placeId
             this.showModalPlaceDelete = true

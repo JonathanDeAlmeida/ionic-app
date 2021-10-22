@@ -32,6 +32,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/MeusImoveis.vue')
   },
   {
+    path: '/pesquisar-imovel',
+    component: () => import('@/views/PesquisarImovel.vue')
+  },
+  {
     path: '/tabs/',
     component: Tabs,
     children: [

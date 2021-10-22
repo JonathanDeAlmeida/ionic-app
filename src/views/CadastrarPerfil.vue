@@ -1,12 +1,38 @@
 <template>
     <ion-page>
+      <div v-if="alert.status" :class="'alert-general ' + alert.type">
+        <div>
+          <span class="pl-1">{{alert.message}}</span>
+        </div>
+      </div>
       <ion-header>
-        <ion-toolbar>
-          <ion-title>Cadastro de Usuário</ion-title>
-          <ion-button class="ion-padding-end" slot="end" router-link="/tabs/tab1">Voltar</ion-button>
-        </ion-toolbar>
+          <ion-toolbar>
+              <ion-tabs>
+                  <ion-tab-bar slot="top">
+                      <ion-tab-button tab="Haluga" @click="goTo('/pesquisar-imovel')">
+                          <img height="40" src="../../public/static/logo-color.svg">
+                      </ion-tab-button>
+                      <template v-if="user">
+                          <ion-tab-button tab="Meus Imoveis" @click="goTo('/meus-imoveis')">
+                              <ion-label>Meus Imoveis</ion-label>
+                          </ion-tab-button>
+                          <ion-tab-button tab="Sair" @click="exit">
+                              <ion-label>Sair</ion-label>
+                          </ion-tab-button>
+                      </template>
+                      <template v-else>
+                          <ion-tab-button tab="Anunciar Imovel" @click="goTo('/login')">
+                              <ion-label>Anúnciar Imóvel</ion-label>
+                          </ion-tab-button>
+                      </template>
+                  </ion-tab-bar>
+              </ion-tabs>
+          </ion-toolbar>
       </ion-header>
       <ion-content>
+        <div style="margin: 15px; text-align: center">
+          <p style="font-size: 35px; color: #e63946">Cadastro</p>
+        </div>
         <ion-item>
           <ion-label position="stacked">Nome</ion-label>
           <ion-input v-model="form.name"></ion-input>
@@ -17,11 +43,7 @@
         </ion-item>
         <ion-item>
           <ion-label position="stacked">Senha</ion-label>
-          <ion-input v-model="form.password"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Confirmar Senha</ion-label>
-          <ion-input v-model="form.confirmPassword"></ion-input>
+          <ion-input type="password" v-model="form.password"></ion-input>
         </ion-item>
         <ion-item>
           <ion-button slot="end" @click="formSubmit()">Cadastrar</ion-button>
@@ -31,57 +53,87 @@
     </ion-page>
 </template>
 <script>
-import { IonPage, IonHeader, IonTitle, IonContent, IonToolbar, IonButton, IonLabel, IonInput, IonItem } from '@ionic/vue'
+import { IonPage, IonHeader, IonContent, IonToolbar, IonButton, IonLabel, IonInput, IonItem } from '@ionic/vue'
 import axios from 'axios';
 import { getHeader, apiUrl } from './config'
 
 export default {
     name: 'CadastrarPerfil',
     components: {
-      IonPage, IonHeader, IonTitle, IonContent, IonToolbar, IonButton, IonLabel, IonInput, IonItem 
+      IonPage, IonHeader, IonContent, IonToolbar, IonButton, IonLabel, IonInput, IonItem 
     },
     data: () => ({
       form: {
         name: null,
         email: null,
-        password: null,
-        confirmPassword: null
+        password: null
+      },
+      user: null,
+      alert: {
+        status: false,
+        type: "",
+        message: ""
       }
     }),
     methods: {
+      validateForm () {
+        if (!this.form.name) {
+          return false
+        } 
+        if (!this.form.email) {
+          return false
+        }
+        if (!this.form.password) {
+          return false
+        }
+        return true
+      },
+      showAlert (type, message) {
+        this.alert.status = true
+        this.alert.type = type
+        this.alert.message = message
+        setTimeout(() => {
+          this.alert.status = false
+          this.alert.type = ''
+          this.alert.message = ''
+        }, 7000)
+      },
       formSubmit () {
-        // this.$store.dispatch('getSpinner', true)
+        if (!this.validateForm()) {
+          this.showAlert('danger', 'Insira os dados corretamente')
+          return false
+        }
         axios({url: apiUrl + 'user-create', method: 'post', data: this.form}).then(response => {
           if (response.data.user_enabled) {
             window.localStorage.setItem('userId', response.data.userId)
             window.localStorage.setItem('authUser', response.data.authUser)
-            // this.$store.dispatch('getSpinner', false)
-            this.$router.push('/cadastrar-imovel')
+            this.$router.push('/meus-imoveis')
           } else {
-            // this.$store.dispatch('getAlertDanger', response.body.message)
+            this.showAlert('danger', response.data.message)
           }
         })
+      },
+      goTo (path) {
+        this.$router.push(path)
       },
       getUser () {
         const userId = window.localStorage.getItem('userId')
         if (userId) {
-            this.$http.post(apiUrl + 'get-user', {user_id: userId}, {headers: getHeader()}).then(response => {
-                this.$store.dispatch('getUser', response.body)
-                this.$router.push('/')
-                this.$store.dispatch('getSpinner', false)
-            }, error => {
-                console.log(error)
-                this.$store.dispatch('getUser', null)
-                window.localStorage.clear();
-            })
-        } else {
-            this.$store.dispatch('getSpinner', false)
+          const params = {}
+          params.user_id = userId
+          axios({url: apiUrl + 'get-user', method: 'post', params, headers: getHeader()}).then(response => {
+            this.user = response.data
+            this.$router.push('/pesquisar-imovel')
+          }).catch(error => {
+            console.log(error)  
+            this.user = null
+            window.localStorage.clear()
+          })
         }
       }
     },
     created () {
-        // this.$store.dispatch('getSpinner', true)
-        // this.getUser()
+      this.getUser()
     }
 }
 
