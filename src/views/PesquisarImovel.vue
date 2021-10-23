@@ -5,22 +5,37 @@
             <ion-toolbar>
                 <ion-tabs>
                     <ion-tab-bar slot="top">
-                        <ion-tab-button tab="Haluga" @click="goTo('/pesquisar-imovel')">
-                            <img height="40" src="../../public/static/logo-color.svg">
-                        </ion-tab-button>
-                        <template v-if="user">
-                            <ion-tab-button tab="Meus Imoveis" @click="goTo('/meus-imoveis')">
-                                <ion-label>Meus Imoveis</ion-label>
-                            </ion-tab-button>
-                            <ion-tab-button tab="Sair" @click="exit">
-                                <ion-label>Sair</ion-label>
-                            </ion-tab-button>
-                        </template>
-                        <template v-else>
-                            <ion-tab-button tab="Anunciar Imovel" @click="goTo('/login')">
-                                <ion-label>Anúnciar Imóvel</ion-label>
-                            </ion-tab-button>
-                        </template>
+                        <ion-grid>
+                            <ion-row>
+                                <ion-col @click="goTo('/pesquisar-imovel')">
+                                    <img height="40" src="../../public/static/logo-color.svg">
+                                </ion-col>
+                                <template v-if="user">
+                                    <ion-col class="pt-tab-item-my" @click="goTo('/meus-imoveis')">
+                                        <span class="tab-item">
+                                            Meus Imoveis
+                                        </span>
+                                    </ion-col>
+                                    <ion-col class="pt-tab-item" @click="goTo('/editar-perfil')">
+                                        <span class="tab-item">
+                                            Editar Perfil
+                                        </span>
+                                    </ion-col>
+                                    <ion-col class="pt-tab-item" @click="exit">
+                                        <span class="tab-item">
+                                            Sair
+                                        </span>
+                                    </ion-col>
+                                </template>
+                                <template v-else>
+                                    <ion-col class="pt-tab-item" @click="goTo('/login')">
+                                        <span class="tab-item">
+                                            Anúnciar Imóvel
+                                        </span>
+                                    </ion-col>
+                                </template>
+                            </ion-row>
+                        </ion-grid>
                     </ion-tab-bar>
                 </ion-tabs>
             </ion-toolbar>

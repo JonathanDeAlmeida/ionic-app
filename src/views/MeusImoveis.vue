@@ -1,264 +1,135 @@
 <template>
-        <!-- <b-modal v-model="showModalPlaceDetails" hide-header hide-footer size="lg"> 
-            <template v-if="placeDetails">
-                <div class="col-md-12 modal-border">
-                    <h4>Detalhes</h4>
-                </div>
-                <div class="col-md-12 text-justify">
-                    <p><strong>Anunciante: </strong> {{placeDetails.responsible_name}}</p>
-                    <p><strong>Contato: </strong> {{maskPhone(placeDetails.phone)}}</p>
-                    <p><strong>Endereço: </strong> <span v-html="textAddress(placeDetails, 1000)"></span></p>
-                    <p><strong>Descrição: </strong> {{placeDetails.description}}</p>
-                </div>
-                <hr>
-                <div class="col-md-12">
-                    <div class="float-right">
-                        <button class="btn-general blue" @click="showModalPlaceDetails = false"> Fechar </button>
-                    </div>
-                </div>
-            </template>
-        </b-modal> -->
+    <section class="mt-container mb-container">
+      <ion-page>
+        <ion-header>
+            <ion-toolbar>
+                <ion-tabs>
+                    <ion-tab-bar slot="top">
+                        <ion-tab-button tab="Haluga" @click="goTo('/pesquisar-imovel')">
+                            <img height="40" src="../../public/static/logo-color.svg">
+                        </ion-tab-button>
+                        <template v-if="user">
+                            <ion-tab-button tab="Meus Imoveis" @click="goTo('/meus-imoveis')">
+                                <ion-label>Meus Imoveis</ion-label>
+                            </ion-tab-button>
+                            <ion-tab-button tab="Editar Perfil" @click="goTo('/editar-perfil')">
+                                <ion-label>Editar Perfil</ion-label>
+                            </ion-tab-button>
+                            <ion-tab-button tab="Sair" @click="exit">
+                                <ion-label>Sair</ion-label>
+                            </ion-tab-button>
+                        </template>
+                        <template v-else>
+                            <ion-tab-button tab="Anunciar Imovel" @click="goTo('/login')">
+                                <ion-label>Anúnciar Imóvel</ion-label>
+                            </ion-tab-button>
+                        </template>
+                    </ion-tab-bar>
+                </ion-tabs>
+            </ion-toolbar>
+        </ion-header>
+        <ion-content>
+        <!-- <Menu/> -->
+            <template v-if="places.length > 0">
+                <ion-card v-for="(place, index) of places" :key="index">
+                    <ion-card-header>
+                        <template v-if="place.images.length > 0">
+                            <ion-slides pager="true" :options="slideOpts">
+                                <ion-slide style="height: 200px" v-for="(image, index) of place.images" :key="index">
+                                    <img :src="domain + image.path" width="100%">
+                                </ion-slide>
+                            </ion-slides>
+                        </template>
+                        <template v-else>
+                            <div>
+                                <div class="text-align-center no-image">
+                                    <p> Sem Imagem</p>
+                                </div>
+                            </div>
+                        </template>
+                    </ion-card-header>
+                    <ion-card-content>
 
-        <!-- <b-modal v-model="showModalPlaceDelete" hide-header hide-footer> 
-            <template>
-                <div class="col-md-12 modal-border">
-                    <h4>Excluir</h4>
-                </div>
-                <div class="col-md-12 text-justify">
-                    Tem certeza que deseja excluir permanentemente ?
-                </div>
-                <hr>
-                <div class="col-md-12">
-                    <div class="float-right">
-                        <button class="btn-general blue-light mr-2" @click="showModalPlaceDelete = false"> Fechar </button>
-                        <button @click="excluir(placeDeleteId)" class="btn-general blue">Confirmar</button>
-                    </div>
-                </div>
-            </template>
-        </b-modal> -->
+                        <div class="text-align-center">
+                            <template v-if="place.intent === 'rent'">
+                                <p class="place-rent-value">R$ {{ formatValue(place.rent_value) }} 
+                                <span class="fs-15">/ mês</span>
+                                </p>
+                            </template>
+                            <template v-else>
+                                <p class="place-rent-value">R$ {{ formatValue(place.sale_value) }} </p>
+                            </template>
+                            <br>
+                        
+                        
+                            <p v-if="place.condominium_value > 0" class="d-inline place-secondary-value">Condomínio R$ {{ formatValue(place.condominium_value) }}</p> 
 
-        <!-- <div class="container" v-if="load">
+                            <span v-if="place.condominium_value > 0 && place.iptu > 0"> - </span> 
 
-            <div class="row">
-                <template v-if="places.length > 0">
-                    <div class="col-lg-10 mx-auto" v-for="(place, index) of places" :key="index">
-                        <div class="place-border">
-                            <div class="row">
-                                <template v-if="place.images.length > 0">
-                                    <div class="col-lg-5 col-md-12 col-sm-12 carousel-my-places">
-                                        <b-carousel :interval="0" controls>
-                                            <b-carousel-slide v-for="(image, index) of place.images" :img-src="domain + image.path" :key="index">
-                                            </b-carousel-slide>
-                                        </b-carousel>                                
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    <div class="col-lg-5 col-md-12 col-sm-12">
-                                        <div class="text-center place-border no-image">
-                                            <p class="mt-5"> Sem Imagem</p>
-                                        </div>
-                                    </div>
-                                </template>
-                                <div class="col-lg-7 col-md-12 col-sm-12">
-                                    <div class="place-details">
-                                        <div style="padding-left: 5px">
-                                            <div class="row">
-                                                <div class="col-lg-7 col-md-12">
-                                                <template v-if="place.intent === 'rent'">
-                                                    <p class="place-rent-value mt-mobile">R$ {{ formatValue(place.rent_value) }} 
-                                                    <span class="fs-15">/ mês</span>
-                                                    </p>
-                                                </template>
-                                                <template v-else>
-                                                    <p class="place-rent-value mt-mobile">R$ {{ formatValue(place.sale_value) }} </p>
-                                                </template>
-                                                </div>
-                                                <div class="col-lg-5 col-md-12 mt-mobile" style="padding-left: 0">
-                                                    <div class="btn-place-actions">
-                                                        <button @click.prevent="openModalPlaceDelete(place.place_id)" class="btn-general blue-light mr-2">Excluir</button>
-                                                        <button class="btn-general blue" @click.prevent="goTo('/editar-imovel/' + place.place_id)">
-                                                            Editar
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
+                            <p v-if="place.iptu > 0" class="d-inline place-secondary-value">IPTU R$ {{ formatValue(place.iptu) }}</p>
+                                                
+                            <template v-if="place.description">
+                                <p style="margin-top: 15px" class="place-description-search" v-html="limitText(place.description, 42)"></p>...
+                            </template>
+                                                
+                            <p v-html="textAddress(place, 50)" class="place-address-responsible" :class="place.description ? '' : 'mt-5'"></p>
+                        
+                        </div>
 
-                                            <p v-if="place.condominium_value > 0" class="d-inline place-secondary-value">Condomínio R$ {{ formatValue(place.condominium_value) }}</p> 
+                        <ion-grid>
+                            <ion-row>
+                                <ion-col v-if="place.area" class="text-align-center">
+                                    <span class="place-number">{{place.area}}</span>
+                                    <span class="place-space">Área (m²)</span>
+                                </ion-col>
+                                <ion-col v-if="place.rooms" class="text-align-center">
+                                    <span class="place-number">{{place.rooms}}</span>
+                                    <span class="place-space">Quarto</span>
+                                </ion-col>
+                                <ion-col v-if="place.suites" class="text-align-center">
+                                    <span class="place-number">{{place.suites}}</span>
+                                    <span class="place-space">Suíte</span>
+                                </ion-col>
+                                <ion-col v-if="place.bathrooms" class="text-align-center">
+                                    <span class="place-number">{{place.bathrooms}}</span>
+                                    <span class="place-space">Banh.</span>
+                                </ion-col>
+                                <ion-col v-if="place.vacancies" class="text-align-center">
+                                    <span class="place-number">{{place.vacancies}}</span>
+                                    <span class="place-space">Vaga</span>
+                                </ion-col>
+                            </ion-row>
+                        </ion-grid>
 
-                                            <span v-if="place.condominium_value > 0 && place.iptu > 0"> - </span> 
-
-                                            <p v-if="place.iptu > 0" class="d-inline place-secondary-value">IPTU R$ {{ formatValue(place.iptu) }}</p>
-                                            
-                                            <br>
-                                            <template v-if="place.description">
-                                                <p class="place-description-search" v-html="limitText(place.description, 42)"></p>...
-                                                <a class="link-blue-light d-inline" href="" @click.prevent="showPlaceDetails(place)">Ver Mais</a>
-                                            </template>
-                                            
-                                            <p v-html="textAddress(place, 50)" class="place-address-responsible" :class="place.description ? '' : 'mt-5'"></p>
-                                        </div>
-                                        <div class="container">
-                                            <div class="row text-center">
-                                                <div class="width-place-space" v-if="place.area">
-                                                    <span class="place-number">{{place.area}}</span>
-                                                    <span class="place-space">Área (m²)</span>
-                                                </div>
-                                                <div class="width-place-space" v-if="place.rooms">
-                                                    <span class="place-number">{{place.rooms}}</span>
-                                                    <span class="place-space">Quarto</span>
-                                                </div>
-                                                <div class="width-place-space" v-if="place.suites">
-                                                    <span class="place-number">{{place.suites}}</span>
-                                                    <span class="place-space">Suíte</span>
-                                                </div>
-                                                <div class="width-place-space" v-if="place.bathrooms">
-                                                    <span class="place-number">{{place.bathrooms}}</span>
-                                                    <span class="place-space">Banh.</span>
-                                                </div>
-                                                <div class="width-place-space" v-if="place.vacancies">
-                                                    <span class="place-number">{{place.vacancies}}</span>
-                                                    <span class="place-space">Vaga</span>
-                                                </div>
-                                                <div class="width-place-button">
-                                                    <div v-if="place.active">
-                                                        <button class="btn-general main mt-3" @click.prevent="goTo('/detalhes-imovel/' + place.place_id)">
-                                                            Ver Detalhes
-                                                        </button>
-                                                    </div>
-                                                </div>  
-                                                <div class="col-md-12 mt-2" style="padding: 0">
-                                                    <div class="float-left">
-                                                        <span v-if="place.active" style="color: white; cursor: pointer" class="badge bg-success">Anúncio Ativo</span>
-                                                        <span v-else style="color: white; cursor: pointer" class="badge bg-danger" title="Para o anúncio estar ativo, deve ter no mínimo 5 fotos">
-                                                            Anúncio Inativo
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div> 
+                        <div class="text-align-center">
+                            <div class="width-place-button">
+                                <div v-if="place.active">
+                                    <button class="btn-general main" @click.prevent="openModalPlaceDetails(place)">
+                                        Ver Mais
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <pagination :source="pagination" @navigate="navigate"></pagination>
-                </template>
-                <template v-else>
-                    <div class="col-lg-10 mx-auto">
-                        <div class="text-center">
-                            <h3>Nenhum imóvel cadastrado</h3>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div> -->
-        
-    <section class="mt-container mb-container">
-      <ion-page>
-        <ion-content>
-        <!-- <Menu/> -->
-            <ion-card v-for="(place, index) of places" :key="index">
-                <ion-card-header>
-                    <template v-if="place.images.length > 0">
-                        <ion-slides pager="true" :options="slideOpts">
-                            <ion-slide style="height: 200px" v-for="(image, index) of place.images" :key="index">
-                                <img :src="domain + image.path" width="100%">
-                            </ion-slide>
-                        </ion-slides>
-                    </template>
-                    <template v-else>
-                        <div>
-                            <div class="text-align-center no-image">
-                                <p> Sem Imagem</p>
-                            </div>
-                        </div>
-                    </template>
-                </ion-card-header>
-                <ion-card-content>
-
-                    <div class="text-align-center">
-                        <template v-if="place.intent === 'rent'">
-                            <p class="place-rent-value">R$ {{ formatValue(place.rent_value) }} 
-                            <span class="fs-15">/ mês</span>
-                            </p>
-                        </template>
-                        <template v-else>
-                            <p class="place-rent-value">R$ {{ formatValue(place.sale_value) }} </p>
-                        </template>
                         <br>
                         
-                        <div style="padding-left: 0">
-                            <div class="btn-place-actions">
-                                <button @click.prevent="openModalPlaceDelete(place.place_id)" class="btn-general blue-light mr-2">Excluir</button>
-                                <button class="btn-general blue" @click.prevent="goTo('/editar-imovel/' + place.place_id)">
-                                    Editar
-                                </button>
+                        <div class="col-md-12 mt-2" style="padding: 0">
+                            <div class="float-left">
+                                <span v-if="place.active" style="color: white; cursor: pointer" class="badge bg-success">Anúncio Ativo</span>
+                                <span v-else style="color: white; cursor: pointer" class="badge bg-danger" title="Para o anúncio estar ativo, deve ter no mínimo 5 fotos">
+                                    Anúncio Inativo
+                                </span>
                             </div>
                         </div>
-                    
-                    <p v-if="place.condominium_value > 0" class="d-inline place-secondary-value">Condomínio R$ {{ formatValue(place.condominium_value) }}</p> 
+                        
 
-                    <span v-if="place.condominium_value > 0 && place.iptu > 0"> - </span> 
-
-                    <p v-if="place.iptu > 0" class="d-inline place-secondary-value">IPTU R$ {{ formatValue(place.iptu) }}</p>
-                                            
-                    <template v-if="place.description">
-                        <p style="margin-top: 15px" class="place-description-search" v-html="limitText(place.description, 42)"></p>...
-                    </template>
-                                            
-                    <p v-html="textAddress(place, 50)" class="place-address-responsible" :class="place.description ? '' : 'mt-5'"></p>
-                    
-                    </div>
-
-                    <ion-grid>
-                        <ion-row>
-                            <ion-col v-if="place.area" class="text-align-center">
-                                <span class="place-number">{{place.area}}</span>
-                                <span class="place-space">Área (m²)</span>
-                            </ion-col>
-                            <ion-col v-if="place.rooms" class="text-align-center">
-                                <span class="place-number">{{place.rooms}}</span>
-                                <span class="place-space">Quarto</span>
-                            </ion-col>
-                            <ion-col v-if="place.suites" class="text-align-center">
-                                <span class="place-number">{{place.suites}}</span>
-                                <span class="place-space">Suíte</span>
-                            </ion-col>
-                            <ion-col v-if="place.bathrooms" class="text-align-center">
-                                <span class="place-number">{{place.bathrooms}}</span>
-                                <span class="place-space">Banh.</span>
-                            </ion-col>
-                            <ion-col v-if="place.vacancies" class="text-align-center">
-                                <span class="place-number">{{place.vacancies}}</span>
-                                <span class="place-space">Vaga</span>
-                            </ion-col>
-                        </ion-row>
-                    </ion-grid>
-
-                    <div class="text-align-center">
-                        <div class="width-place-button">
-                            <div v-if="place.active">
-                                <button class="btn-general main" @click.prevent="openModalPlaceDetails(place)">
-                                    Ver Mais
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <br>
-                    
-                    <div class="col-md-12 mt-2" style="padding: 0">
-                        <div class="float-left">
-                            <span v-if="place.active" style="color: white; cursor: pointer" class="badge bg-success">Anúncio Ativo</span>
-                            <span v-else style="color: white; cursor: pointer" class="badge bg-danger" title="Para o anúncio estar ativo, deve ter no mínimo 5 fotos">
-                                Anúncio Inativo
-                            </span>
-                        </div>
-                    </div>
-                    
-
-                </ion-card-content>
-            </ion-card>
-        
+                    </ion-card-content>
+                </ion-card>
+            </template>
+            <template v-else>
+              <div class="text-align-center">
+                  <h3>Nenhum imóvel encontrado</h3>
+              </div>
+            </template>
         </ion-content>
       </ion-page>
     </section>
@@ -266,29 +137,22 @@
 </template>
 
 <script>
-// import Pagination from './Pagination'
 import { getHeader, logout, apiUrl, apiDomain, maskPhone } from './config'
 import { modalController, IonPage, IonContent, IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonCol, IonGrid, IonRow } from '@ionic/vue';
-import axios from 'axios';
-import ModalPlaceDetails from './ModalPlaceDetails.vue';
-// import Menu from './Menu.vue'
-// import spinner from 'vue-strap/src/Spinner'
+import axios from 'axios'
+import ModalPlaceDetails from './ModalPlaceDetails.vue'
 
 export default {
     name: 'MeusImoveis',
     components: {
-      /* Menu , */IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonPage, IonContent, IonCol, IonGrid, IonRow
-        // Pagination,
-        // spinner
+      IonSlides, IonSlide, IonCard, IonCardContent, IonCardHeader, IonPage, IonContent, IonCol, IonGrid, IonRow
     },
     data: () => ({
         slideOpts: {initialSlide: 1, speed: 400},
         domain: apiDomain,
-        pagination: {},
         places: [],
+        user: null,
         placeDetails: null,
-        showModalPlaceDetails: false,
-        showModalPlaceDelete: false,
         placeDeleteId: null,
         maskPhone: maskPhone,
         load: false
@@ -302,10 +166,6 @@ export default {
                 }
             })
             modal.present()
-        },
-        openModalPlaceDelete (placeId) {
-            this.placeDeleteId = placeId
-            this.showModalPlaceDelete = true
         },
         limitText (value, limit) {
             if (value) {
@@ -321,33 +181,12 @@ export default {
             }
             return (address.length > limit ? address.substr(0, limit) + '...' : address)
         },
-        showPlaceDetails (place) {
-            this.placeDetails = place
-            this.showModalPlaceDetails = true
-        },
         formatValue (valueNumber) {
             const value = parseFloat(valueNumber)
             return value.toLocaleString('pt-br', {minimumFractionDigits: 2})
         },
         goTo (path) {
-            this.$store.dispatch('getSpinner', true)
             this.$router.push(path)
-            setTimeout(() => {
-                this.$store.dispatch('getSpinner', false)
-            }, 1000)
-        },
-        excluir (id) {
-            this.$store.dispatch('getSpinner', true)
-            this.$http.post(apiUrl + 'delete-place', {place_id: id}, {headers: getHeader()}).then(() => {
-                this.placeDeleteId = null
-                this.showModalPlaceDelete = false
-                this.navigate()
-            }, error => {
-                if (error.status === 401) {
-                    this.$store.dispatch('getUser', null)
-                    logout()
-                }
-            })
         },
         navigate (page = 1) {
             const userId = window.localStorage.getItem('userId')
@@ -360,31 +199,32 @@ export default {
                 // this.pagination = response.body
                 window.scrollTo(0, 0)
                 // this.load = true
-                // this.$store.dispatch('getSpinner', false)
             })
+        },
+        exit () {
+          window.localStorage.clear()
+          this.user = null
+          this.$router.push('/login')
         },
         getUser () {
             const userId = window.localStorage.getItem('userId')
             if (userId) {
-                this.$http.post(apiUrl + 'get-user', {user_id: userId}, {headers: getHeader()}).then(response => {
-                    this.$store.dispatch('getUser', response.body)
+                const params = {}
+                params.user_id = userId
+                axios({url: apiUrl + 'get-user', method: 'post', params, headers: getHeader()}).then(response => {
+                    this.user = response.data
                     this.navigate()
-                }, error => {
-                    if (error.status === 401) {
-                        this.$store.dispatch('getUser', null)
+                }).catch(error => {
+                    if (error.response.status === 401) {
+                        this.user = null
                         logout()
                     }
                 })
-            } else {
-                this.$store.dispatch('getUser', null)
-                logout()
             }
         }
     },
     created () {
-        // this.$store.dispatch('getSpinner', true)
-        // this.getUser()
-        this.navigate()
+        this.getUser()
     }
 }
 </script>

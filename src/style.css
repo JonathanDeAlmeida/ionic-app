@@ -672,6 +672,19 @@
     margin: 2px 2px 2px 2px;
   }
 
+  .pt-tab-item-my {
+    padding-top: 8px;
+  }
+
+  .pt-tab-item {
+    padding-top: 17px;
+  }
+
+  .tab-item {
+    font-size: 12px; 
+    cursor: pointer;
+  }
+
   .icon-search-place:hover {
     background: #a5a5a5; 
   }

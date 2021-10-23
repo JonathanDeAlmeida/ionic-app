@@ -5,7 +5,7 @@ import Tabs from '../views/Tabs.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/tabs/tab1'
+    component: () => import('@/views/PesquisarImovel.vue')
   },
   {
     path: '/list',
@@ -36,26 +36,8 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/PesquisarImovel.vue')
   },
   {
-    path: '/tabs/',
-    component: Tabs,
-    children: [
-      {
-        path: '',
-        redirect: '/tabs/tab1'
-      },
-      {
-        path: 'tab1',
-        component: () => import('@/views/Tab1.vue')
-      },
-      {
-        path: 'tab2',
-        component: () => import('@/views/Tab2.vue')
-      },
-      {
-        path: 'tab3',
-        component: () => import('@/views/Tab3.vue')
-      }
-    ]
+    path: '/editar-perfil',
+    component: () => import('@/views/EditarPerfil.vue')
   }
 ]
 
